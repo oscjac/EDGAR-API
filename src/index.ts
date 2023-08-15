@@ -10,7 +10,7 @@ import {FrameResponseBody} from "./responses";
 export class CompanyConcept {
     readonly taxonomy: Taxonomy;
     readonly concept: string;
-    private units: CompanyConceptUnits[];
+    private readonly units: CompanyConceptUnits[];
 
     private constructor(taxonomy: Taxonomy, concept: string, units: CompanyConceptUnits[]) {
         this.taxonomy = taxonomy;
@@ -20,8 +20,8 @@ export class CompanyConcept {
 
     private filterFactory(start?: string | Date, end?: string | Date): (unit: CompanyConceptUnits) => boolean {
         if (start === undefined && end === undefined) return () => true;
-        let after = (date: Date) => true;
-        let before = (date: Date) => true;
+        let after: (() => boolean) | ((d: Date) => boolean) = () => true;
+        let before: (() => boolean) | ((d: Date) => boolean) = () => true;
         if (start !== undefined) {
             const startDate = new Date(start);
             after = (date: Date) => date >= startDate;
