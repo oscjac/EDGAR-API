@@ -21,6 +21,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - name: Run tests
-        run: npm test:github
         with:
           USER_AGENT: "Github CI Action edgar-api/ oscjac3@gmail.com"
+        run: npm test:github
