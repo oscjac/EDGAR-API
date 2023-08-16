@@ -19,7 +19,9 @@
     "@aws-sdk/credential-provider-node": "^3.76.0",
     "@aws-sdk/protocol-http": "^3.58.0",
     "@aws-sdk/signature-v4": "^3.58.0",
-    "node-fetch": "^2.6.1"
+    "@types/xmldom": "^0.1.31",
+    "node-fetch": "^2.6.1",
+    "xmldom": "^0.6.0"
   },
   "repository": {
     "type": "git",

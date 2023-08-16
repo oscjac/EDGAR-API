@@ -1,10 +1,11 @@
 import {env} from "process";
 import {URL} from "url";
 import fetch, {Headers, Response} from "node-fetch";
-import {UserAgentError} from "./errors";
+import {UserAgentError, SECError} from "./errors";
 import {CompanyConceptBody, CompanyConceptUnits, Quarter, Taxonomy, Unit} from "./types";
 import {isSubmissionResponseData, validateCompanyConcept, validateFrames} from "./validators";
 import {FrameResponseBody} from "./responses";
+import {DOMParser} from "xmldom";
 
 
 export class CompanyConcept {
@@ -62,43 +63,50 @@ export class Driver {
         });
     }
 
-    private handleError(res: Response): Error {
-        if (res.status === 400) return new UserAgentError();
+    private async handleError(res: Response): Promise<Error> {
+        switch (res.status) {
+            case 400:
+                return new UserAgentError("Bad request");
+            case 404:
+                const text = await res.text();
+                const doc = new DOMParser().parseFromString(text, "text/xml");
+                return new SECError(doc)
+        }
         return new Error;
     }
 
     async submissions(cik: string) {
-        const endpoint = new URL("data.sec.gov/submission/CIK" + cik.padStart(10, "0") + ".json");
+        const endpoint = new URL("https://data.sec.gov/submissions/CIK" + cik.padStart(10, "0") + ".json");
         const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
-            throw this.handleError(res);
+            throw await this.handleError(res);
         const data = await res.json();
         if (!isSubmissionResponseData(data))
-            throw this.handleError(res);
+            throw await this.handleError(res);
         return data;
     }
 
     async getCompanyConcept(cik: string, taxonomy: Taxonomy, tag: string): Promise<CompanyConcept> {
-        const endpoint = new URL("data.sec.gov/api/xbrl/companyconcept/CIK" + cik.padStart(10, "0") +
+        const endpoint = new URL("https://data.sec.gov/api/xbrl/companyconcept/CIK" + cik.padStart(10, "0") +
             "/" + taxonomy + "/" + tag + ".json");
         const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
-            throw this.handleError(res);
+            throw await this.handleError(res);
         const data = await res.json();
         if (!validateCompanyConcept(data))
-            throw this.handleError(res);
+            throw await this.handleError(res);
         return CompanyConcept.fromBody(data);
     }
 
     async companyFacts(cik: string): Promise<CompanyConcept[]> {
-        const endpoint = new URL("data.sec.gov/api/xbrl/companyfacts/CIK" + cik.padStart(10, "0") + ".json");
+        const endpoint = new URL("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik.padStart(10, "0") + ".json");
         const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
-            throw this.handleError(res);
+            throw await this.handleError(res);
         const data = await res.json();
         const out = new Array<CompanyConcept>();
         if (data["data"] === undefined)
-            throw this.handleError(res)
+            throw await this.handleError(res)
         const entityName = data["entityName"];
         for (const taxonomy in data) {
             for (const tag in data[taxonomy]) {
@@ -127,17 +135,17 @@ export class Driver {
         if (quarter != null) {
             quarterString = "Q" + quarter.toString();
         }
-        const endpoint = new URL("data.sec.gov/api/xbrl/frames/" +
+        const endpoint = new URL("https://data.sec.gov/api/xbrl/frames/" +
         concept.taxonomy + "/" + concept.concept + "/" + unit + "/" + yearString + "/" + quarterString +
         immediate ? "I" : "" + ".json");
         const res = await fetch(endpoint, {
             headers: this.headers
         })
         if (res.status !== 200)
-            throw this.handleError(res);
+            throw await this.handleError(res);
         const data = await res.json();
         if (!validateFrames(data))
-            throw this.handleError(res);
+            throw await this.handleError(res);
         return data;
     }
 }
