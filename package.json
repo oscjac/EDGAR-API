@@ -13,7 +13,7 @@
     "build:umd": "tsc -p config/tsconfig.umd.json",
     "clean": "node tools/cleanup.js",
     "test": "jest",
-    "test:github": "export USER_AGENT=$INPUT_USER_AGENT && npm run test"
+    "test:github": "npm run test"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^2.0.1",
