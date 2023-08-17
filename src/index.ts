@@ -1,11 +1,10 @@
 import {env} from "process";
 import {URL} from "url";
 import fetch, {Headers, Response} from "node-fetch";
-import {UserAgentError, SECError} from "./errors";
+import {UserAgentError, SECError, ForbiddenRequestError} from "./errors";
 import {CompanyConceptBody, CompanyConceptUnits, Quarter, Taxonomy, Unit} from "./types";
 import {isSubmissionResponseData, validateCompanyConcept, validateFrames} from "./validators";
 import {FrameResponseBody} from "./responses";
-import {DOMParser} from "xmldom";
 
 
 export class CompanyConcept {
@@ -58,31 +57,26 @@ export class Driver {
         if (userAgentVal === undefined || userAgentVal === "")
             throw new Error("User agent not provided in either constructor or environment variable");
         this.headers = new Headers({
-            "Accept-Encoding": "gzip, deflate",
-            "Host": "www.sec.gov",
-            "User-Agent": userAgentVal
+            "User-Agent": userAgentVal,
         });
     }
 
     private async handleError(res: Response): Promise<Error> {
-        if (process.env.DEBUG==="true")
-            console.error(await res.text());
+        const text = await res.text();
         switch (res.status) {
             case 400:
                 return new UserAgentError("Bad request");
+            case 403:
+                return new ForbiddenRequestError(text);
             case 404:
-                const text = await res.text();
-                const doc = new DOMParser().parseFromString(text, "text/xml");
-                return new SECError(doc)
+                return new SECError(text)
         }
         return new Error;
     }
 
     async submissions(cik: string) {
         const endpoint = new URL("https://data.sec.gov/submissions/CIK" + cik.padStart(10, "0") + ".json");
-        const res = await fetch(endpoint, {headers: this.headers});
-        if (process.env.DEBUG==="true")
-            console.log(endpoint.toString(), this.headers)
+        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}, method: "GET"});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -94,7 +88,7 @@ export class Driver {
     async getCompanyConcept(cik: string, taxonomy: Taxonomy, tag: string): Promise<CompanyConcept> {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/companyconcept/CIK" + cik.padStart(10, "0") +
             "/" + taxonomy + "/" + tag + ".json");
-        const res = await fetch(endpoint, {headers: this.headers});
+        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -105,9 +99,7 @@ export class Driver {
 
     async companyFacts(cik: string): Promise<CompanyConcept[]> {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik.padStart(10, "0") + ".json");
-        const res = await fetch(endpoint, {headers: this.headers});
-        if (process.env.DEBUG==="true")
-            console.log(endpoint.toString(), this.headers)
+        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -146,7 +138,7 @@ export class Driver {
         concept.taxonomy + "/" + concept.concept + "/" + unit + "/" + yearString + "/" + quarterString +
         immediate ? "I" : "" + ".json");
         const res = await fetch(endpoint, {
-            headers: this.headers
+            headers: {...this.headers, "Host": endpoint.host}
         })
         if (res.status !== 200)
             throw await this.handleError(res);

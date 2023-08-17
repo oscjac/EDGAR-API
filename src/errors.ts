@@ -1,3 +1,5 @@
+import {DOMParser} from "xmldom";
+
 export class UserAgentError extends Error {
     constructor(message?: string) {
         super(message);
@@ -8,11 +10,23 @@ export class UserAgentError extends Error {
 export class SECError extends Error {
     readonly code: string;
     readonly key: string
-    constructor(doc: Document) {
+
+    constructor(text: string) {
+        const doc = new DOMParser().parseFromString(text, "text/xml");
         const message = doc.getElementsByTagName("Error")[0]
         super(message.textContent ?? "");
         this.name = "SECError";
         this.code = message.getElementsByTagName("Code")[0].textContent ?? "";
         this.key = message.getElementsByTagName("Key")[0].textContent ?? "";
+    }
+}
+
+export class ForbiddenRequestError extends Error {
+    constructor(html: string) {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const title = doc.getElementsByTagName("title")[0];
+        const message = title.textContent ?? "";
+        super(message);
+        this.name = "ForbiddenError";
     }
 }
