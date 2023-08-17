@@ -58,6 +58,8 @@ export class Driver {
             throw new Error("User agent not provided in either constructor or environment variable");
         this.headers = new Headers({
             "User-Agent": userAgentVal,
+            "Accept-Encoding": "gzip, deflate",
+            "Host": "data.sec.gov"
         });
     }
 
@@ -76,7 +78,7 @@ export class Driver {
 
     async submissions(cik: string) {
         const endpoint = new URL("https://data.sec.gov/submissions/CIK" + cik.padStart(10, "0") + ".json");
-        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}, method: "GET"});
+        const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -88,7 +90,7 @@ export class Driver {
     async getCompanyConcept(cik: string, taxonomy: Taxonomy, tag: string): Promise<CompanyConcept> {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/companyconcept/CIK" + cik.padStart(10, "0") +
             "/" + taxonomy + "/" + tag + ".json");
-        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}});
+        const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -99,7 +101,7 @@ export class Driver {
 
     async companyFacts(cik: string): Promise<CompanyConcept[]> {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik.padStart(10, "0") + ".json");
-        const res = await fetch(endpoint, {headers: {...this.headers, "Host": endpoint.host}});
+        const res = await fetch(endpoint, {headers: this.headers});
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -137,9 +139,7 @@ export class Driver {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/frames/" +
         concept.taxonomy + "/" + concept.concept + "/" + unit + "/" + yearString + "/" + quarterString +
         immediate ? "I" : "" + ".json");
-        const res = await fetch(endpoint, {
-            headers: {...this.headers, "Host": endpoint.host}
-        })
+        const res = await fetch(endpoint, {headers: this.headers})
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();

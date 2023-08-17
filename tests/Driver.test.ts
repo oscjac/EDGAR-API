@@ -4,14 +4,16 @@ import {SECError} from "../src/errors";
 
 describe("Driver", () => {
     test("constructor", () => {
-        const driver = new Driver("test");
-        expect(driver).toBeInstanceOf(Driver);
+        const prev = process.env.USER_AGENT;
+        delete process.env.USER_AGENT;
+        expect(() => new Driver("test")).not.toThrow();
+        if (prev !== undefined)
+            process.env.USER_AGENT = prev;
     })
     test("constructor with user agent in env", () => {
         const prev = process.env.USER_AGENT;
         process.env.USER_AGENT = "test";
-        const driver = new Driver();
-        expect(driver).toBeInstanceOf(Driver);
+        expect(() => new Driver()).not.toThrow();
         delete process.env.USER_AGENT;
         if (prev !== undefined)
             process.env.USER_AGENT = prev;
@@ -27,7 +29,7 @@ describe("Driver", () => {
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
-            return driver.submissions("6200").catch(e => {
+            return driver.submissions("100").catch(e => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })
@@ -36,7 +38,7 @@ describe("Driver", () => {
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
-            return driver.companyFacts("6200").catch(e => {
+            return driver.companyFacts("100").catch(e => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })

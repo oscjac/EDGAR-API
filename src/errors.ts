@@ -23,7 +23,8 @@ export class SECError extends Error {
 
 export class ForbiddenRequestError extends Error {
     constructor(html: string) {
-        const doc = new DOMParser().parseFromString(html, "text/html");
+        const parsed = html.replace("</P>", "</p>");
+        const doc = new DOMParser().parseFromString(parsed, "text/html");
         const title = doc.getElementsByTagName("title")[0];
         const message = title.textContent ?? "";
         super(message);
