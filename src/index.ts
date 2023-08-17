@@ -64,6 +64,8 @@ export class Driver {
     }
 
     private async handleError(res: Response): Promise<Error> {
+        if (process.env.DEBUG==="true")
+            console.error(await res.text());
         switch (res.status) {
             case 400:
                 return new UserAgentError("Bad request");

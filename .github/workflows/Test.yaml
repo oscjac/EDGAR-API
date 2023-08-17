@@ -23,4 +23,5 @@ jobs:
       - name: Run tests
         env:
           USER_AGENT: "Github CI Action edgar-api/ oscjac3@gmail.com"
+          DEBUG: "true"
         run: npm run test:github
