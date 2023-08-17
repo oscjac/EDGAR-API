@@ -58,7 +58,8 @@ export class Driver {
         if (userAgentVal === undefined || userAgentVal === "")
             throw new Error("User agent not provided in either constructor or environment variable");
         this.headers = new Headers({
-            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate",
+            "Host": "www.sec.gov",
             "User-Agent": userAgentVal
         });
     }
@@ -80,6 +81,8 @@ export class Driver {
     async submissions(cik: string) {
         const endpoint = new URL("https://data.sec.gov/submissions/CIK" + cik.padStart(10, "0") + ".json");
         const res = await fetch(endpoint, {headers: this.headers});
+        if (process.env.DEBUG==="true")
+            console.log(endpoint.toString(), this.headers)
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
@@ -103,6 +106,8 @@ export class Driver {
     async companyFacts(cik: string): Promise<CompanyConcept[]> {
         const endpoint = new URL("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik.padStart(10, "0") + ".json");
         const res = await fetch(endpoint, {headers: this.headers});
+        if (process.env.DEBUG==="true")
+            console.log(endpoint.toString(), this.headers)
         if (res.status !== 200)
             throw await this.handleError(res);
         const data = await res.json();
