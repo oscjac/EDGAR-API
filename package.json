@@ -22,14 +22,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oscjac/EDGAR-API.git"
+    "url": "git+https://github.com/oscjac/edgar-api.git"
   },
   "author": "Oscar Rangel",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/oscjac/EDGAR-API/issues"
+    "url": "https://github.com/oscjac/edgar-api/issues"
   },
-  "homepage": "https://github.com/oscjac/EDGAR-API#readme",
+  "homepage": "https://github.com/oscjac/edgar-api#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
     "@jest/globals": "^29.6.2",
