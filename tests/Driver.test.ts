@@ -110,4 +110,26 @@ describe("Driver", () => {
         })
 
     })
+
+    describe("frames", () => {
+
+        test("should be correct", async () => {
+            const driver = new Driver();
+            const concept = await driver.getCompanyConcept(new CIK("6201"), "us-gaap",
+                "AccountsPayableCurrent");
+            const frames = await driver.frames(concept, 2019, "Q1I", "USD");
+            expect(frames.pts).toBe(3390);
+            expect(frames.data).toHaveLength(3390);
+            expect(frames.data[0]).toEqual({
+                "accn": "0001104659-19-016320",
+                "cik": 1750,
+                "entityName": "AAR CORP.",
+                "loc": "US-IL",
+                "end": "2019-02-28",
+                "val": 218600000
+            })
+        })
+
+    })
+
 })

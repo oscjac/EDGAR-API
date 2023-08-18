@@ -2,7 +2,7 @@ import fetch, {Headers, Response} from "node-fetch";
 import {env} from "process";
 import {ForbiddenRequestError, SECError, UserAgentError} from "./errors";
 import {URL} from "url";
-import {isSubmissionResponseData, validateCompanyConcept, validateFrames} from "./validators";
+import {isSubmissionResponseData, validateCompanyConcept, isFrameResponseBody} from "./validators";
 import {CIK, Quarter, Taxonomy} from "./types";
 import {FrameResponseBody} from "./responses";
 import CompanyConcept from "./CompanyConcept";
@@ -23,8 +23,7 @@ export default class Driver {
         this.conceptCache = new Map<string, CompanyConcept>();
     }
 
-    private async handleError(res: Response): Promise<Error> {
-        const text = await res.text();
+    private async handleError(res: Response, text: string): Promise<Error> {
         switch (res.status) {
             case 400:
                 return new UserAgentError("Bad request");
@@ -39,11 +38,12 @@ export default class Driver {
     async submissions(cik: CIK) {
         const endpoint = new URL(`https://data.sec.gov/submissions/${cik.toString()}.json`);
         const res = await fetch(endpoint, {headers: this.headers});
+        const text = await res.text();
         if (res.status !== 200)
-            throw await this.handleError(res);
-        const data = await res.json();
+            throw await this.handleError(res, text);
+        const data = JSON.parse(text)
         if (!isSubmissionResponseData(data))
-            throw await this.handleError(res);
+            throw await this.handleError(res, text);
         return data;
     }
 
@@ -54,11 +54,12 @@ export default class Driver {
         const endpoint = new URL(`https://data.sec.gov/api/xbrl/companyconcept/${cik.toString()}/` +
             `${taxonomy}/${tag}.json`);
         const res = await fetch(endpoint, {headers: this.headers});
+        const text = await res.text();
         if (res.status !== 200)
-            throw await this.handleError(res);
-        const data = await res.json();
+            throw await this.handleError(res, text);
+        const data = JSON.parse(text);
         if (!validateCompanyConcept(data))
-            throw await this.handleError(res);
+            throw await this.handleError(res, text);
         this.conceptCache.set(`${taxonomy}/${tag}`, CompanyConcept.fromBody(data));
         return CompanyConcept.fromBody(data);
     }
@@ -66,12 +67,13 @@ export default class Driver {
     async companyFacts(cik: CIK): Promise<CompanyConcept[]> {
         const endpoint = new URL(`https://data.sec.gov/api/xbrl/companyfacts/${cik.toString()}.json`);
         const res = await fetch(endpoint, {headers: this.headers});
+        const text = await res.text();
         if (res.status !== 200)
-            throw await this.handleError(res);
-        const data = await res.json();
+            throw await this.handleError(res, text);
         const out = new Array<CompanyConcept>();
+        const data = JSON.parse(text);
         if (data["data"] === undefined)
-            throw await this.handleError(res)
+            throw await this.handleError(res, text)
         const entityName = data["entityName"];
         for (const taxonomy in data) {
             for (const tag in data[taxonomy]) {
@@ -91,24 +93,22 @@ export default class Driver {
     * If parameters for time are not provided, the current year and quarter will be used
      */
     async frames(concept: CompanyConcept, year: number | null = null, quarter: Quarter | null = null,
-                 unit = "pure", immediate: boolean = false): Promise<FrameResponseBody> {
+                 unit = "pure"): Promise<FrameResponseBody> {
         let yearString = "CY" + new Date().getFullYear().toString();
         if (year != null) {
+            if (year < 1960 || year > new Date().getFullYear())
+                throw new Error("Invalid year");
             yearString = "CY" + year.toString();
         }
-        let quarterString = "Q" + Math.ceil(new Date().getMonth() / 3).toString();
-        if (quarter != null) {
-            quarterString = "Q" + quarter.toString();
-        }
-        const endpoint = new URL("https://data.sec.gov/api/xbrl/frames/" +
-        concept.taxonomy + "/" + concept.concept + "/" + unit + "/" + yearString + "/" + quarterString +
-        immediate ? "I" : "" + ".json");
+        const endpoint = new URL(`https://data.sec.gov/api/xbrl/frames/${concept.toString()}/${unit}/`
+            + yearString + (quarter ?? "") + ".json");
         const res = await fetch(endpoint, {headers: this.headers})
+        const text = await res.text();
         if (res.status !== 200)
-            throw await this.handleError(res);
-        const data = await res.json();
-        if (!validateFrames(data))
-            throw await this.handleError(res);
+            throw await this.handleError(res, text);
+        const data = JSON.parse(text);
+        if (!isFrameResponseBody(data))
+            throw await this.handleError(res, text);
         return data;
     }
 }

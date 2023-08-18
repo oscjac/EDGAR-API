@@ -11,15 +11,22 @@ export const isSubmissionResponseData = (data: any): data is SubmissionResponseD
     return keys.length === keySet.size && keys.every(key => keySet.has(key));
 }
 
-const validateFrameResponseData = (data: any): data is FrameResponseData => {
-    return !(data["accn"] === undefined || data["cik"] === undefined || data["entityName"] === undefined ||
-        data["loc"] === undefined || data["end"] === undefined || data["val"] === undefined);
+const isFrameResponseData = (data: any): data is FrameResponseData => {
+    if (data === undefined || data === null || !Array.isArray(data)) return false;
+    for (const datum of data) {
+        if (typeof datum["accn"] !== 'string' || typeof datum["cik"] !== 'number' ||
+            typeof datum["entityName"] !== 'string' || typeof datum["loc"] !== 'string' ||
+            typeof datum["end"] !== 'string' || typeof datum["val"] !== 'number')
+            return false;
+    }
+    return true;
 }
 
-export const validateFrames = (data: any): data is FrameResponseBody => {
-    return !(data["taxonomy"] === undefined || data["tag"] === undefined ||
-        data["ccp"] === undefined || data["uom"] === undefined || data["label"] ||
-    data["pts"] === undefined || data["data"] === undefined || !validateFrameResponseData(data["data"]))
+export const isFrameResponseBody = (data: any): data is FrameResponseBody => {
+    return (typeof data["taxonomy"] === 'string' || typeof data["tag"] === 'string' ||
+        typeof data["ccp"] === 'string' || typeof data["uom"] === 'string' ||
+        typeof data["label"] === 'string' || typeof data["pts"] === 'number' ||
+        isFrameResponseData(data["data"]))
 }
 
 const validateCompanyConceptUnit = (data: any): data is CompanyConceptUnits => {

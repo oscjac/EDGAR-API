@@ -53,6 +53,10 @@ export default class CompanyConcept {
         }
         return out;
     }
+
+    /**
+     * Equivalent to `${taxonomy}/${concept}`
+     */
     toString(): string {
         return `${this.taxonomy}/${this.concept}`;
     }

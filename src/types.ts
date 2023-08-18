@@ -1,6 +1,6 @@
 export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt";
 
-export type Quarter = 1 | 2 | 3 | 4;
+export type Quarter = `Q${1 | 2 | 3 | 4}${"I" | ""}`;
 
 export type CompanyConceptBase = {
     cik: number,
