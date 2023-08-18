@@ -51,7 +51,9 @@ describe("Driver", () => {
             })
         })
     })
+
     describe("companyfacts", () => {
+
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
@@ -59,6 +61,23 @@ describe("Driver", () => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })
+
+        test("should return correct company facts", () => {
+            const driver = new Driver();
+            const cik = 6201;
+            expect.assertions(5)
+            return driver.companyFacts(new CIK(cik.toString())).then(facts => {
+                expect(facts.cik).toBe(cik);
+                expect(Object.keys(facts.facts).length).toBe(3);
+                if (facts.facts["us-gaap"] === undefined || facts.facts["dei"] === undefined ||
+                    facts.facts["invest"] === undefined)
+                    throw new Error("us-gaap, dei, or invest not found")
+                expect(Object.keys(facts.facts["us-gaap"]).length).toBe(647);
+                expect(Object.keys(facts.facts["dei"]).length).toBe(3);
+                expect(Object.keys(facts.facts["invest"]).length).toBe(1);
+            })
+        })
+
     })
     describe("getCompanyConcept", () => {
         test("should throw error on invalid cik", () => {

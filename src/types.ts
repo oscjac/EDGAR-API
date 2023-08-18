@@ -1,4 +1,4 @@
-export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt";
+export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt" | "invest";
 
 export type Quarter = `Q${1 | 2 | 3 | 4}${"I" | ""}`;
 
@@ -28,7 +28,7 @@ export type CompanyConceptUnits = {
 }
 
 export type CompanyConceptBody = {
-    label: string,
+    label?: string,
     description?: string,
     units: CompanyConceptUnits
 } & CompanyConceptBase

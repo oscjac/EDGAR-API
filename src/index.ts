@@ -2,9 +2,14 @@ import fetch, {Headers, Response} from "node-fetch";
 import {env} from "process";
 import {ForbiddenRequestError, SECError, UserAgentError} from "./errors";
 import {URL} from "url";
-import {isSubmissionResponseData, validateCompanyConcept, isFrameResponseBody} from "./validators";
+import {
+    isSubmissionResponseData,
+    isCompanyConceptBody,
+    isFrameResponseBody,
+    isCompanyFactsResponse
+} from "./validators";
 import {CIK, Quarter, Taxonomy} from "./types";
-import {FrameResponseBody} from "./responses";
+import {CompanyFactsResponse, FrameResponseBody} from "./responses";
 import CompanyConcept from "./CompanyConcept";
 
 export default class Driver {
@@ -58,35 +63,24 @@ export default class Driver {
         if (res.status !== 200)
             throw await this.handleError(res, text);
         const data = JSON.parse(text);
-        if (!validateCompanyConcept(data))
+        if (!isCompanyConceptBody(data))
             throw await this.handleError(res, text);
         this.conceptCache.set(`${taxonomy}/${tag}`, CompanyConcept.fromBody(data));
         return CompanyConcept.fromBody(data);
     }
 
-    async companyFacts(cik: CIK): Promise<CompanyConcept[]> {
+    async companyFacts(cik: CIK): Promise<CompanyFactsResponse> {
         const endpoint = new URL(`https://data.sec.gov/api/xbrl/companyfacts/${cik.toString()}.json`);
         const res = await fetch(endpoint, {headers: this.headers});
         const text = await res.text();
         if (res.status !== 200)
             throw await this.handleError(res, text);
-        const out = new Array<CompanyConcept>();
         const data = JSON.parse(text);
-        if (data["data"] === undefined)
+        if (data["facts"] === undefined)
             throw await this.handleError(res, text)
-        const entityName = data["entityName"];
-        for (const taxonomy in data) {
-            for (const tag in data[taxonomy]) {
-                const conceptData = {
-                    cik: parseInt(cik.toString(), 10),
-                    entityName, taxonomy, tag,
-                    ...data[taxonomy][tag]
-                };
-                if (validateCompanyConcept(conceptData))
-                    out.push(CompanyConcept.fromBody(conceptData));
-            }
-        }
-        return out;
+        if (!isCompanyFactsResponse(data))
+            throw await this.handleError(res, text);
+        return data;
     }
 
     /*

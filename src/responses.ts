@@ -1,13 +1,40 @@
 import {Taxonomy} from "./types";
+import {FrameResponseData} from "../dist/types/responses";
 
-export interface FrameResponseData {
+export interface ConceptUnitBase {
     accn: string,
+    end?: string,
+    val: number
+}
+
+export interface ConceptUnit extends ConceptUnitBase {
+    fy: number,
+    fp: string,
+    form: string,
+    frame?: string
+    filed: string,
+}
+
+interface CompanyConcept {
+    label: string,
+    description?: string,
+    units: {
+        [key: string]: ConceptUnit[] | undefined
+    }
+}
+
+export interface CompanyFactsResponse {
+    cik: number,
+    entityName: string,
+    facts: {
+        [key: string]: { [tag: string]: CompanyConcept | undefined } | undefined
+    }
+}
+
+export interface FrameResponseUnit extends ConceptUnitBase {
     cik: number,
     entityName: string,
     loc: string,
-    end: string
-    val: number
-    start?: string
 }
 
 export interface FrameResponseBody {
@@ -41,7 +68,7 @@ export interface SubmissionResponseData {
     stateOfIncorporationDescription: string,
     phone: string,
     flags: string,
-    formerNames: {name: string, from: string, to: string}[]
+    formerNames: { name: string, from: string, to: string }[]
     filings: {
         recent: {
             accessionNumber: string[],
