@@ -1,6 +1,23 @@
 import {describe, expect, test} from "@jest/globals";
-import {Driver} from "../src"
+import Driver from "../src/index"
 import {SECError} from "../src/errors";
+import {CIK} from "../src/types";
+
+describe("CIK", () => {
+    describe("should throw error", () => {
+        test("on non-numeric input", () => {
+            expect(() => new CIK("test")).toThrow();
+        })
+        test("on input with length greater than 10", () => {
+            expect(() => new CIK("10000000000")).toThrow();
+        })
+    })
+    describe("toString", () => {
+        test("should return CIK with leading zeroes", () => {
+            expect(new CIK("100").toString()).toBe("CIK0000000100");
+        })
+    })
+})
 
 describe("Driver", () => {
     test("constructor", () => {
@@ -29,7 +46,7 @@ describe("Driver", () => {
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
-            return driver.submissions("100").catch(e => {
+            return driver.submissions(new CIK("100")).catch(e => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })
@@ -38,7 +55,7 @@ describe("Driver", () => {
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
-            return driver.companyFacts("100").catch(e => {
+            return driver.companyFacts(new CIK("100")).catch(e => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })
