@@ -1,5 +1,4 @@
 import {Taxonomy} from "./types";
-import {FrameResponseData} from "../dist/types/responses";
 
 export interface ConceptUnitBase {
     accn: string,
@@ -45,7 +44,7 @@ export interface FrameResponseBody {
     label: string,
     description?: string,
     pts: number,
-    data: FrameResponseData[]
+    data: FrameResponseUnit[]
 }
 
 export interface SubmissionResponseData {
