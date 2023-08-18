@@ -1,8 +1,6 @@
-export type Taxonomy = "us-gaap" | "ifrs";
+export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt";
 
 export type Quarter = 1 | 2 | 3 | 4;
-
-export type Unit = "pure" | "USD"
 
 export type CompanyConceptBase = {
     cik: number,
@@ -25,15 +23,17 @@ export class CIK {
     }
 }
 
+export type CompanyConceptUnits = {
+    [key: string]: CompanyConceptUnit[] | undefined
+}
+
 export type CompanyConceptBody = {
     label: string,
     description?: string,
-    units: {
-        [key in Taxonomy]: CompanyConceptUnits[]
-    }
+    units: CompanyConceptUnits
 } & CompanyConceptBase
 
-export type CompanyConceptUnits = {
+export type CompanyConceptUnit = {
     end?: string,
     start?: string,
     accn: string,

@@ -1,4 +1,4 @@
-import {Unit, Taxonomy} from "./types";
+import {Taxonomy} from "./types";
 
 export interface FrameResponseData {
     accn: string,
@@ -7,13 +7,14 @@ export interface FrameResponseData {
     loc: string,
     end: string
     val: number
+    start?: string
 }
 
 export interface FrameResponseBody {
     taxonomy: Taxonomy,
     tag: string,
     ccp: string,
-    uom: Unit,
+    uom: string,
     label: string,
     description?: string,
     pts: number,
