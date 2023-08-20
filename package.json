@@ -1,6 +1,6 @@
 {
   "name": "edgar-api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An API that interfaces with the SEC's EDGAR lookup tool",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -19,7 +19,8 @@
   "dependencies": {
     "@types/xmldom": "^0.1.31",
     "node-fetch": "^2.6.1",
-    "xmldom": "^0.6.0"
+    "xmldom": "^0.6.0",
+    "xpath": "^0.0.33"
   },
   "repository": {
     "type": "git",

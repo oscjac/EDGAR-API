@@ -10,8 +10,13 @@ import {
 } from "./validators";
 import {CompanyFactsResponse, FrameResponseBody} from "./responses";
 import CompanyConcept, {Taxonomy} from "./CompanyConcept";
+import CIK from "./cik";
+import {cikByName, LookupResult} from "./lookup";
 
-export {CompanyConcept, CompanyFactsResponse, FrameResponseBody, Taxonomy};
+export {
+    CompanyConcept, CompanyFactsResponse, FrameResponseBody, Taxonomy, CIK, LookupResult, UserAgentError,
+    ForbiddenRequestError, SECError
+};
 
 export type Quarter = `Q${1 | 2 | 3 | 4}${"I" | ""}`;
 
@@ -29,20 +34,6 @@ const toQuarter = (month: number | string | Quarter): Quarter => {
     if (n > 4 || n < 1)
         throw new Error("Invalid month");
     return `Q${n}I` as Quarter;
-}
-
-export class CIK {
-    private readonly cik: string;
-
-    constructor(cik: string) {
-        if (!/^\d+$/.test(cik) || 10 < cik.length)
-            throw new Error("Invalid CIK");
-        this.cik = "CIK" + cik.padStart(10, "0");
-    }
-
-    toString(): string {
-        return this.cik;
-    }
 }
 
 export default class Driver {
@@ -137,7 +128,7 @@ export default class Driver {
                 quarter = toQuarter(n + 1);
             unitVal = "pure"
         } else if (typeof unitOrFrameOrYear === 'string') // First or second overload signature
-            if (quarterOrUnit === undefined){ // First overload signature
+            if (quarterOrUnit === undefined) { // First overload signature
                 unitVal = unitOrFrameOrYear;
                 const n = Math.floor(new Date().getMonth() / 3);
                 if (n === 0) {
@@ -145,8 +136,7 @@ export default class Driver {
                     quarter = "Q4I";
                 } else
                     quarter = toQuarter(n + 1);
-            }
-            else { // Second overload signature
+            } else { // Second overload signature
                 frame = unitOrFrameOrYear;
                 unitVal = quarterOrUnit;
             }
@@ -169,4 +159,9 @@ export default class Driver {
             throw await this.handleError(res, text);
         return data;
     }
+
+    async cikByName(name: string): Promise<LookupResult[]> {
+        return cikByName(name);
+    }
+
 }
