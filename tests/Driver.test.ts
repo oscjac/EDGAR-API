@@ -1,7 +1,9 @@
 import {describe, expect, test} from "@jest/globals";
-import Driver from "../src/index"
+import Driver, {CIK} from "../src/index"
 import {SECError} from "../src/errors";
-import {CIK, CompanyConceptUnit} from "../src/types";
+import {CompanyConceptUnit} from "../src/CompanyConcept";
+import fetch from "node-fetch";
+import {env} from "process";
 
 describe("CIK", () => {
     describe("should throw error", () => {
@@ -148,7 +150,24 @@ describe("Driver", () => {
                 "val": 218600000
             })
         })
-
+        test("should use default values", async () => {
+            let year = new Date().getFullYear();
+            let quarter = Math.floor(new Date().getMonth() / 3);
+            if (quarter === 0){
+                year -= 1;
+                quarter = 4;
+            }
+            const tag = "AccountsPayableCurrent";
+            const taxonomy = "us-gaap";
+            const unit = "USD"
+            const url = new URL(`https://data.sec.gov/api/xbrl/frames/${taxonomy}/${tag}/${unit}/CY${year}Q${quarter}I.json`)
+            const res = await fetch(url, {headers: {"User-Agent": env.USER_AGENT ?? ""}})
+            const data = await res.json();
+            const driver = new Driver();
+            const concept = await driver.getCompanyConcept(new CIK("6201"), taxonomy, tag);
+            const frames = await driver.frames(concept, unit);
+            expect(frames).toEqual(data);
+        })
     })
 
 })

@@ -1,5 +1,33 @@
-import {CompanyConceptBody, CompanyConceptUnit, CompanyConceptUnits, Taxonomy} from "./types";
+export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt" | "invest";
 
+export type CompanyConceptBase = {
+    cik: number,
+    entityName: string,
+    tag: string,
+    taxonomy: Taxonomy,
+}
+
+
+export type CompanyConceptUnits = {
+    [key: string]: CompanyConceptUnit[] | undefined
+}
+
+export type CompanyConceptBody = {
+    label?: string,
+    description?: string,
+    units: CompanyConceptUnits
+} & CompanyConceptBase
+
+export type CompanyConceptUnit = {
+    end?: string,
+    start?: string,
+    accn: string,
+    fy: number,
+    fp: string,
+    form: string,
+    frame?: string
+    val: number
+}
 export default class CompanyConcept {
     readonly taxonomy: Taxonomy;
     readonly concept: string;

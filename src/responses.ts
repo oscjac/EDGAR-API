@@ -1,4 +1,4 @@
-import {Taxonomy} from "./types";
+import {Taxonomy} from "./CompanyConcept";
 
 export interface ConceptUnitBase {
     accn: string,

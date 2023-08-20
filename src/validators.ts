@@ -5,8 +5,7 @@ import {
     FrameResponseUnit,
     SubmissionResponseData
 } from "./responses";
-import {CompanyConceptBody, CompanyConceptUnits} from "./types";
-import CompanyConcept from "./CompanyConcept";
+import CompanyConcept, {CompanyConceptBody, CompanyConceptUnits} from "./CompanyConcept";
 
 export const isSubmissionResponseData = (data: any): data is SubmissionResponseData => {
     const response = data as SubmissionResponseData;
