@@ -158,8 +158,8 @@ export default class Driver {
             unitVal = unit;
         }
         if (frame === undefined)
-            frame = `${concept.toString()}/${unitVal}/CY${year}${quarter ?? ""}`
-        const endpoint = new URL(`https://data.sec.gov/api/xbrl/frames/${frame}.json`);
+            frame = `CY${year}${quarter ?? ""}`
+        const endpoint = new URL(`https://data.sec.gov/api/xbrl/frames/${concept.toString()}/${unitVal}/${frame}.json`);
         const res = await fetch(endpoint, {headers: this.headers})
         const text = await res.text();
         if (res.status !== 200)

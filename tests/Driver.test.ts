@@ -4,6 +4,8 @@ import {SECError} from "../src/errors";
 import {CompanyConceptUnit} from "../src/CompanyConcept";
 import fetch from "node-fetch";
 import {env} from "process";
+import path from "path"
+import fs from "fs"
 
 describe("CIK", () => {
     describe("should throw error", () => {
@@ -134,26 +136,23 @@ describe("Driver", () => {
 
     describe("frames", () => {
 
+        const testFile = fs.readFileSync(path.join(__dirname, "frames2019Q1I.json"), "utf8")
+        const testData = JSON.parse(testFile)
+
         test("should be correct", async () => {
+            expect.assertions(1)
             const driver = new Driver();
             const concept = await driver.getCompanyConcept(new CIK("6201"), "us-gaap",
                 "AccountsPayableCurrent");
             const frames = await driver.frames(concept, 2019, "Q1I", "USD");
-            expect(frames.pts).toBe(3390);
-            expect(frames.data).toHaveLength(3390);
-            expect(frames.data[0]).toEqual({
-                "accn": "0001104659-19-016320",
-                "cik": 1750,
-                "entityName": "AAR CORP.",
-                "loc": "US-IL",
-                "end": "2019-02-28",
-                "val": 218600000
-            })
+            expect(frames).toStrictEqual(testData)
         })
+
         test("should use default values", async () => {
+            expect.assertions(1)
             let year = new Date().getFullYear();
             let quarter = Math.floor(new Date().getMonth() / 3);
-            if (quarter === 0){
+            if (quarter === 0) {
                 year -= 1;
                 quarter = 4;
             }
@@ -166,8 +165,27 @@ describe("Driver", () => {
             const driver = new Driver();
             const concept = await driver.getCompanyConcept(new CIK("6201"), taxonomy, tag);
             const frames = await driver.frames(concept, unit);
-            expect(frames).toEqual(data);
+            expect(frames).toStrictEqual(data);
         })
+
+        test("should accept frame parameter", async () => {
+            expect.assertions(1)
+            const driver = new Driver();
+            const concept = await driver.getCompanyConcept(new CIK("6201"), "us-gaap",
+                "AccountsPayableCurrent");
+            const frames = await driver.frames(concept, "CY2019Q1I", "USD");
+            expect(frames).toStrictEqual(testData);
+        })
+
+        test("should accept year, quarter parameters", async () => {
+            expect.assertions(1)
+            const driver = new Driver();
+            const concept = await driver.getCompanyConcept(new CIK("6201"), "us-gaap",
+                "AccountsPayableCurrent");
+            const frames = await driver.frames(concept, 2019, "Q1I", "USD");
+            expect(frames).toStrictEqual(testData);
+        })
+
     })
 
 })
