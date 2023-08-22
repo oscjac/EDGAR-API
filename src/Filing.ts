@@ -1,7 +1,7 @@
 import {isTaxonomy, Taxonomy} from "./CompanyConcept";
 
 interface Identifiable {
-    id: number
+    id: string
 }
 
 interface Context {
@@ -43,25 +43,17 @@ interface FilingInterface {
     filterFacts(predicate: (fact: Fact) => boolean): Fact[];
 }
 
-export default class Filing {
+export default class Filing implements FilingInterface {
     private readonly root: HTMLElement
     private readonly facts: Array<FactNode>
     private readonly contexts: Array<ContextNode>
 
     private constructor(root: HTMLElement) {
         this.root = root;
-        this.facts = Filing.getFacts(root);
-        this.contexts = Filing.getContexts(root);
+        this.facts = this.getFacts(root);
+        this.contexts = this.getContexts(root);
     }
 
-    private findNode(predicate: (element: Element) => boolean): Element | null {
-        for (let i = 0; i < this.root.children.length; i++) {
-            const node = this.root.children.item(i);
-            if (node === null || !predicate(node)) continue;
-            return node
-        }
-        return null;
-    }
 
     /**
      * Takes in a context element and returns a Context object or null if the input cannot be converted to a Context
@@ -125,17 +117,26 @@ export default class Filing {
         return null; // Fact not found
     }
 
+    filterFacts(predicate: (fact: Fact) => boolean): Fact[] {
+        const out: Fact[] = [];
+        for (const fact of this.facts) {
+            const context = this.getContext(fact);
+            if (predicate(context))
+                out.push(context);
+        }
+        return out;
+    }
+
     static fromDocument(root: HTMLElement): Filing {
         return new Filing(root);
     }
 
-    static getFacts(root: HTMLElement): FactNode[] {
+    private getFacts(root: HTMLElement): FactNode[] {
         const facts: FactNode[] = [];
         let i = 0;
         while (root.children.item(i)?.nodeName === "context") {
             i++;
         }
-        const factStart = i;
         for (; i < root.children.length; i++) {
             const node = root.children.item(i);
             if (node === null || node.nodeName === "context") continue;
@@ -154,18 +155,17 @@ export default class Filing {
                 unit,
                 value,
                 contextRef,
-                id: parseInt(id)
+                id
             });
         }
         return facts;
     }
 
-    static getContexts(root: HTMLElement): ContextNode[] {
+    private getContexts(root: HTMLElement): ContextNode[] {
         const contexts: ContextNode[] = [];
         for (let i = 0; i < root.children.length; i++) {
             const node = root.children.item(i);
             if (node === null || node.nodeName !== "context") continue;
-            const id = node.getAttribute("id");
         }
         return contexts;
     }

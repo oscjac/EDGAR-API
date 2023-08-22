@@ -15,9 +15,6 @@ import {cikByName, LookupResult} from "./lookup";
 import {DOMParser} from "xmldom";
 import Filing from "./Filing";
 
-type Form = "10-K" | "10-Q" | "8-K" | "20-F" | "40-F" | "6-K" | "F-1" | "F-3" | "F-4" | "F-10" | "S-1" | "S-3" | "S-4" |
-    "S-8" | "S-11" | "POS AM" | "SD" | "SD/A" | "Other";
-
 export {
     CompanyConcept, CompanyFactsResponse, FrameResponseBody, Taxonomy, CIK, LookupResult, UserAgentError,
     ForbiddenRequestError, SECError, CompanyConceptUnit, isTaxonomy
