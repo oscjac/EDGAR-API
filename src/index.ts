@@ -7,15 +7,20 @@ import {
     isCompanyConceptBody,
     isFrameResponseBody,
     isCompanyFactsResponse
-} from "./validators";
+} from "./guards";
 import {CompanyFactsResponse, FrameResponseBody} from "./responses";
-import CompanyConcept, {Taxonomy} from "./CompanyConcept";
+import CompanyConcept, {CompanyConceptUnit, Taxonomy, isTaxonomy} from "./CompanyConcept";
 import CIK from "./cik";
 import {cikByName, LookupResult} from "./lookup";
+import {DOMParser} from "xmldom";
+import Filing from "./Filing";
+
+type Form = "10-K" | "10-Q" | "8-K" | "20-F" | "40-F" | "6-K" | "F-1" | "F-3" | "F-4" | "F-10" | "S-1" | "S-3" | "S-4" |
+    "S-8" | "S-11" | "POS AM" | "SD" | "SD/A" | "Other";
 
 export {
     CompanyConcept, CompanyFactsResponse, FrameResponseBody, Taxonomy, CIK, LookupResult, UserAgentError,
-    ForbiddenRequestError, SECError
+    ForbiddenRequestError, SECError, CompanyConceptUnit, isTaxonomy
 };
 
 export type Quarter = `Q${1 | 2 | 3 | 4}${"I" | ""}`;
@@ -105,6 +110,43 @@ export default class Driver {
         if (!isCompanyFactsResponse(data))
             throw await this.handleError(res, text);
         return data;
+    }
+
+    private async getFilingBuffer(cik: CIK, accessionNumber: string, primaryDocument: string): Promise<Buffer> {
+        if (!primaryDocument.endsWith(".htm"))
+            throw new Error("Primary document must be an .htm file");
+        // Parse accessionNumber
+        let accn = ""
+        for (const char of accessionNumber)
+            if (char !== "-")
+                accn += char;
+        const doc = primaryDocument.replace(".", "_")
+        const url = new URL(`
+        https://www.sec.gov/Archives/edgar/data/${cik.toString(false)}/${accn}/${doc}.xml`);
+        const headers = new Headers({
+            "User-Agent": this.headers.get("User-Agent") ?? "",
+            "Accept": "application/xml",
+            "Host": url.hostname,
+            "Accept-Encoding": "gzip, deflate"
+        });
+        const res = await fetch(url, {headers});
+        if (res.status !== 200)
+            throw await this.handleError(res, await res.text());
+        return res.buffer();
+    }
+
+    /**
+     * Gets a filing from the SEC endpoint
+     * @param cik The CIK of the company
+     * @param accessionNumber The accession number of the filing
+     * @param primaryDocument The primary document of the filing
+     */
+    async getFiling(cik: CIK, accessionNumber: string, primaryDocument: string): Promise<Filing> {
+        const buffer = await this.getFilingBuffer(cik, accessionNumber, primaryDocument);
+        const parser = new DOMParser();
+        const document = parser.parseFromString(buffer.toString(), "text/xml");
+        const root = document.documentElement;
+        return Filing.fromDocument(root);
     }
 
     /**

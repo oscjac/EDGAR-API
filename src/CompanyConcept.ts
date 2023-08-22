@@ -1,5 +1,9 @@
 export type Taxonomy = "us-gaap" | "ifrs" | "dei" | "srt" | "invest";
 
+export const isTaxonomy = (taxonomy: string): taxonomy is Taxonomy => {
+    return ["us-gaap", "ifrs", "dei", "srt", "invest"].includes(taxonomy);
+}
+
 export type CompanyConceptBase = {
     cik: number,
     entityName: string,
@@ -24,6 +28,7 @@ export type CompanyConceptUnit = {
     accn: string,
     fy: number,
     fp: string,
+    filed: string,
     form: string,
     frame?: string
     val: number

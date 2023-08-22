@@ -1,7 +1,7 @@
 import {describe, expect, test} from "@jest/globals";
 import Driver, {CIK} from "../src/index"
-import {SECError} from "../src/errors";
-import {CompanyConceptUnit} from "../src/CompanyConcept";
+import {SECError} from "../src";
+import {CompanyConceptUnit} from "../src";
 import fetch from "node-fetch";
 import {env} from "process";
 import path from "path"
@@ -47,6 +47,7 @@ describe("Driver", () => {
             process.env.USER_AGENT = prev;
     })
     describe("submissions", () => {
+
         test("should throw error on invalid cik", () => {
             expect.assertions(1)
             const driver = new Driver();
@@ -54,6 +55,18 @@ describe("Driver", () => {
                 expect(e).toBeInstanceOf(SECError);
             })
         })
+
+        test("should return correct submissions", () => {
+            const driver = new Driver();
+            const appleCIK = new CIK("320193");
+            expect.assertions(3)
+            return driver.submissions(appleCIK).then(submissions => {
+                expect(submissions.cik).toBe(appleCIK.toString(false));
+                expect(submissions.filings.recent.primaryDocument).toHaveLength(1000);
+                expect(submissions.filings.recent.isXBRL).toHaveLength(1000);
+            })
+        })
+
     })
 
     describe("companyfacts", () => {
@@ -186,6 +199,22 @@ describe("Driver", () => {
             expect(frames).toStrictEqual(testData);
         })
 
+    })
+
+    describe("getFiling", () => {
+
+        test("should be correct", async () => {
+            expect.assertions(1);
+            const driver = new Driver();
+            const appleCIK = new CIK("320193");
+            const accn = "0000320193-23-000077";
+            const primarydoc = "aapl-20230701.htm"
+            const submissions = await driver.submissions(appleCIK);
+            const isXBRL = (_:any, i: number) => submissions.filings.recent.isXBRL[i] === 1
+            submissions.filings.recent.primaryDocument.filter(isXBRL)
+                .forEach(filing => console.log(filing))
+            const filing = await driver.getFiling(appleCIK, accn, primarydoc);
+        })
     })
 
 })

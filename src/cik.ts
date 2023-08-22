@@ -4,11 +4,11 @@ export default class CIK {
     constructor(cik: string) {
         if (!/^\d+$/.test(cik) || 10 < cik.length)
             throw new Error("Invalid CIK");
-        this.cik = "CIK" + cik.padStart(10, "0");
+        this.cik = cik
     }
 
-    toString(): string {
-        return this.cik;
+    toString(format = true): string {
+        return format ? "CIK"+this.cik.padStart(10, "0") : this.cik;
     }
 }
 

@@ -13,11 +13,15 @@ export class SECError extends Error {
 
     constructor(text: string) {
         const doc = new DOMParser().parseFromString(text, "text/xml");
-        const message = doc.getElementsByTagName("Error")[0]
-        super(message.textContent ?? "");
+        const error = doc.getElementsByTagName("Error")[0]
+        const message = error.getElementsByTagName("Message")[0];
+        const code = error.getElementsByTagName("Code")[0];
+        const key = error.getElementsByTagName("Key")[0];
+        const messageText = `${message.textContent}\nCode: ${code.textContent}\nKey: ${key.textContent}`
+        super(messageText);
         this.name = "SECError";
-        this.code = message.getElementsByTagName("Code")[0].textContent ?? "";
-        this.key = message.getElementsByTagName("Key")[0].textContent ?? "";
+        this.code = code.textContent ?? "";
+        this.key = key.textContent ?? "";
     }
 }
 

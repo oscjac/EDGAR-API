@@ -14,7 +14,7 @@ export const isSubmissionResponseData = (data: any): data is SubmissionResponseD
         "ein", "description", "website", "investorWebsite", "category", "fiscalYearEnd",
         "stateOfIncorporation", "stateOfIncorporationDescription", "phone", "flags", "formerNames"];
     const keySet = new Set(Object.keys(response));
-    return keys.length === keySet.size && keys.every(key => keySet.has(key));
+    return keys.length <= keySet.size && keys.every(key => keySet.has(key));
 }
 
 const isCompanyConcept = (data: any): data is CompanyConcept => {
@@ -62,11 +62,9 @@ const isConceptUnitBase = (data: any): data is ConceptUnitBase => {
 }
 
 const isConceptUnit = (data: any): data is ConceptUnit => {
-    if (!isConceptUnitBase(data))
-        return false;
     const unit = data as ConceptUnit;
-    return (typeof unit["fy"] === 'number' && typeof unit["fp"] === 'string' && typeof unit["form"] === 'string'
-        || typeof unit["frame"] === 'string');
+    return (isConceptUnitBase(unit) && typeof unit["fy"] === 'number' && typeof unit["fp"] === 'string'
+        && typeof unit["form"] === 'string' && typeof unit["filed"] === 'string');
 }
 
 const isFrameResponseData = (data: any): data is FrameResponseUnit => {
@@ -83,16 +81,27 @@ export const isFrameResponseBody = (data: any): data is FrameResponseBody => {
         typeof data["data"] === 'object' && Array.isArray(data["data"]) && data["data"].every(isFrameResponseData));
 }
 
-const validateCompanyConceptUnit = (data: any): data is CompanyConceptUnits => {
+const isCompanyConceptUnits = (data: any): data is CompanyConceptUnits => {
     const units = data as CompanyConceptUnits;
-    return !(units.accn === undefined || units.fy === undefined || units.fp === undefined ||
-        units.form === undefined || units.val === undefined);
+    for (const key in units) {
+        const unitList = units[key];
+        if (unitList === undefined)
+            return false;
+        let start = 0;
+        if (100 < unitList.length)
+            start = unitList.length / 2;
+        for (const unit of unitList.slice(start)) {
+            if (!isConceptUnit(unit))
+                return false;
+        }
+    }
+    return true;
 }
 
 export const isCompanyConceptBody = (data: any): data is CompanyConceptBody => {
     const concept = data as CompanyConceptBody;
-    return !(concept.tag === undefined || concept.entityName === undefined ||
-        concept.taxonomy === undefined || concept.units === undefined ||
-        concept.label === undefined || concept.label.length === 0 ||
-        validateCompanyConceptUnit(concept.units));
+    return concept.tag !== undefined && concept.entityName !== undefined &&
+        concept.taxonomy !== undefined && concept.units !== undefined &&
+        concept.label !== undefined && concept.label.length !== 0 &&
+        isCompanyConceptUnits(concept.units);
 }
