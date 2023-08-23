@@ -6,6 +6,7 @@ import fetch from "node-fetch";
 import {env} from "process";
 import path from "path"
 import fs from "fs"
+import Filing from "../src/Filing";
 
 describe("CIK", () => {
     describe("should throw error", () => {
@@ -203,7 +204,7 @@ describe("Driver", () => {
 
     describe("getFiling", () => {
 
-        test("should be correct", async () => {
+        test("should return Filing Instance", async () => {
             expect.assertions(1);
             const driver = new Driver();
             const appleCIK = new CIK("320193");
@@ -214,6 +215,7 @@ describe("Driver", () => {
             submissions.filings.recent.primaryDocument.filter(isXBRL)
                 .forEach(filing => console.log(filing))
             const filing = await driver.getFiling(appleCIK, accn, primarydoc);
+            expect(filing).toBeInstanceOf(Filing);
         })
     })
 
