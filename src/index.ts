@@ -8,7 +8,7 @@ import {
     isFrameResponseBody,
     isCompanyFactsResponse
 } from "./guards";
-import {CompanyFactsResponse, FrameResponseBody} from "./responses";
+import {CompanyFactsResponse, FrameResponseBody, SubmissionResponseData} from "./responses";
 import CompanyConcept, {CompanyConceptUnit, Taxonomy, isTaxonomy} from "./CompanyConcept";
 import CIK from "./cik";
 import {cikByName, LookupResult} from "./lookup";
@@ -17,7 +17,7 @@ import Filing from "./Filing";
 
 export {
     CompanyConcept, CompanyFactsResponse, FrameResponseBody, Taxonomy, CIK, LookupResult, UserAgentError,
-    ForbiddenRequestError, SECError, CompanyConceptUnit, isTaxonomy
+    ForbiddenRequestError, SECError, CompanyConceptUnit, isTaxonomy, SubmissionResponseData, Filing
 };
 
 export type Quarter = `Q${1 | 2 | 3 | 4}${"I" | ""}`;
@@ -66,7 +66,7 @@ export default class Driver {
         return new Error;
     }
 
-    async submissions(cik: CIK) {
+    async submissions(cik: CIK): Promise<SubmissionResponseData>{
         const endpoint = new URL(`https://data.sec.gov/submissions/${cik.toString()}.json`);
         const res = await fetch(endpoint, {headers: this.headers});
         const text = await res.text();

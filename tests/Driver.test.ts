@@ -210,10 +210,6 @@ describe("Driver", () => {
             const appleCIK = new CIK("320193");
             const accn = "0000320193-23-000077";
             const primarydoc = "aapl-20230701.htm"
-            const submissions = await driver.submissions(appleCIK);
-            const isXBRL = (_:any, i: number) => submissions.filings.recent.isXBRL[i] === 1
-            submissions.filings.recent.primaryDocument.filter(isXBRL)
-                .forEach(filing => console.log(filing))
             const filing = await driver.getFiling(appleCIK, accn, primarydoc);
             expect(filing).toBeInstanceOf(Filing);
         })
